@@ -6,7 +6,8 @@ module.exports = (app) =>{
   };
 
   app.get("/", (req, res) => {
-    res.end("Hello!");
+    //res.redirect("/urls");
+    res.end("Hullo");
   });
 
   app.get("/urls/new", (req, res) => {
@@ -17,19 +18,19 @@ module.exports = (app) =>{
   //   res.json(urlDatabase);
   // });
 
-  app.get("/hello", (req, res) => {
-    res.end("<html><body>Hello <b>World</b></body></html>\n");
-  });
+  // app.get("/hello", (req, res) => {
+  //   res.end("<html><body>Hello <b>World</b></body></html>\n");
+  // });
 
   app.get("/urls", (req, res) => {
-    let templateVars = { urls: urlDatabase };
+    let templateVars = { username: req.cookies["username"], urls: urlDatabase };
     res.render("urls_index", templateVars);
   });
 
 
 
   app.get("/urls/:id", (req, res) => {
-    let templateVars = { shortURL: req.params.id, urls: urlDatabase };
+    let templateVars = { shortURL: req.params.id, urls: urlDatabase, username: req.cookies["username"] };
     res.render("urls_show", templateVars);
   });
 
@@ -40,7 +41,7 @@ module.exports = (app) =>{
     //res.send("Ok");         // Respond with 'Ok' (we will replace this)
     let short = generateRandomString();
     urlDatabase[short] = req.body['longURL'];
-    let templateVars = { shortURL: short, urls: urlDatabase};
+    let templateVars = { shortURL: short, urls: urlDatabase, username: req.cookies["username"]};
     res.render("urls_show", templateVars);
    // console.log(urlDatabase);
   });
@@ -61,6 +62,12 @@ module.exports = (app) =>{
     let longURL = urlDatabase[req.params.shortURL];
     console.log(longURL);
     res.redirect(longURL);
+  });
+
+  app.post("/login", (req, res) => {
+    res.cookie('username', req.body['username']);
+    //console.log(res.cookie(req.body['username']));
+    res.redirect('/');
   });
 
   function generateRandomString() {
