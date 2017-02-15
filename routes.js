@@ -6,8 +6,8 @@ module.exports = (app) =>{
   };
 
   app.get("/", (req, res) => {
-    //res.redirect("/urls");
-    res.end("Hullo");
+    res.redirect("/urls");
+    //res.end("Hullo");
   });
 
   app.get("/urls/new", (req, res) => {
@@ -70,6 +70,11 @@ module.exports = (app) =>{
     res.cookie('username', req.body['username']);
     //console.log(res.cookie(req.body['username']));
     res.redirect('/');
+  });
+
+  app.post("/logout", (req, res) => {
+    res.clearCookie('username')
+    res.redirect('/')
   });
 
   function generateRandomString() {

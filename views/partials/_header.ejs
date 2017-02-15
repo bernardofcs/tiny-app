@@ -1,6 +1,12 @@
-<h2> User: <%= username %> </h2>
-<form method="POST" action="/login">
-  <label for="username">Enter a username:</label>
-  <input id="username" type="text" name="username" style="width: 300px">
-  <input type="submit" value="Sign in">
-</form>
+<%if(username){ %>
+  <form method="POST" action="/logout">
+  <h3> User: <%= username %> </h3>
+  <input type="submit" value="Sign out">
+  </form>
+<% }else{ %>
+  <form method="POST" action="/login">
+    <label for="username">Enter a username:</label>
+    <input id="username" type="text" name="username" style="width: 300px">
+    <input type="submit" value="Sign in">
+  </form>
+<% } %>
