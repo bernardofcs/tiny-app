@@ -79,12 +79,6 @@ module.exports = (app) =>{
     res.redirect(longURL);
   });
 
-  app.post("/login", (req, res) => {
-    res.cookie('username', req.body['username']);
-    //console.log(res.cookie(req.body['username']));
-    res.redirect('/');
-  });
-
   app.post("/logout", (req, res) => {
     res.clearCookie('user_id')
     res.redirect('/')
@@ -118,6 +112,22 @@ module.exports = (app) =>{
   app.get("/login", (req, res) =>{
     res.render('login');
   })
+
+  app.post("/login", (req, res) => {
+    for(const user in users){
+      if(users[user]['email'] === req.body.email){
+        if(users[user]['password'] === req.body.password){
+          res.cookie('user_id', users[user]['id']);
+          res.redirect('/');
+          return;
+        }else{
+          res.status(400).send('Sorry, this is the wrong password for this email!<br><a href="/login">Go Back</a>').end();
+          return;
+        }
+      }
+    }
+    res.status(400).send('Sorry, the email is not registered!<br><a href="/login">Go Back</a>').end();
+  });
 
   function generateRandomString() {
   var text = "";
