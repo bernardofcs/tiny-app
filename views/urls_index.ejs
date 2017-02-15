@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <% include partials/_header %>
+  </head>
+  <body>
+    <p>URLs</p>
+    <% Object.keys(urls).forEach(function(url) { %>
+    <form method="POST" action="/urls/<%= url %>/delete">
+    <li id="<%= url %>"><%= url%> - <a href ="<%= urls[url] %>"><%= urls[url] %></a>  -  <a href="/urls/<%= url %>">Edit</a>
+    <input type="submit" value="Delete"></li>
+    </form>
+    <% }); %>
+    <br>
+    <a href ="/urls/new"> Shorten a new URL</a>
+  </body>
+</html>
