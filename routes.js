@@ -1,8 +1,8 @@
 module.exports = (app) =>{
   const users = {};
   const urlDatabase = {                          //objects that stores urls
-    "b2xVn2": "http://www.lighthouselabs.ca",
-    "9sm5xK": "http://www.google.com"
+    // "b2xVn2": "http://www.lighthouselabs.ca",
+    // "9sm5xK": "http://www.google.com"
   };
 
   app.get("/", (req, res) => {
@@ -11,7 +11,14 @@ module.exports = (app) =>{
   });
 
   app.get("/urls/new", (req, res) => {          //request for the url creation page
-    res.render("urls_new");
+    let templateVars = {};
+    if (users[req.cookies["user_id"]]){
+      templateVars = { username: users[req.cookies["user_id"]]['email'] };
+      res.render("urls_new", templateVars);
+      return;
+    }
+    res.status(400).send('Sorry, you need to be logged in order to shorten an URL<br><a href="/">Go Back</a>').end();
+
   });
 
   // app.get("/urls.json", (req, res) => {
@@ -26,9 +33,9 @@ module.exports = (app) =>{
     // let templateVars = { username: req.cookies["username"], urls: urlDatabase };
     let templateVars = {};
     if (users[req.cookies["user_id"]]){
-      templateVars = { username: users[req.cookies["user_id"]]['email'], urls: urlDatabase };
+      templateVars = { username: users[req.cookies["user_id"]]['email'], urls: urlDatabase[req.cookies["user_id"]] };
     }else{
-      templateVars = { username: '', urls: urlDatabase };
+      templateVars = { username: '', urls: {} };
     }
     res.render("urls_index", templateVars);
 
@@ -39,9 +46,9 @@ module.exports = (app) =>{
   app.get("/urls/:id", (req, res) => {                   //request for detail and editing page
     let templateVars = {};
     if (users[req.cookies["user_id"]]){
-      templateVars = { username: users[req.cookies["user_id"]]['email'], urls: urlDatabase, shortURL: req.params.id };
+      templateVars = { username: users[req.cookies["user_id"]]['email'], urls: urlDatabase[req.cookies["user_id"]], shortURL: req.params.id };
     }else{
-      templateVars = { username: '', urls: urlDatabase, shortURL: req.params.id };
+      templateVars = { username: '', urls: {}, shortURL: req.params.id };
     }
     res.render("urls_show", templateVars);
   });
@@ -50,26 +57,26 @@ module.exports = (app) =>{
 
   app.post("/urls", (req, res) => {              //creates a new short url for a given url and stores it in the list
     let short = generateRandomString();
-    urlDatabase[short] = req.body['longURL'];
+    urlDatabase[req.cookies.user_id][short] = req.body['longURL'];
     let templateVars = {};
-    if (users[req.cookies["user_id"]]){
-      templateVars = { username: users[req.cookies["user_id"]]['email'], urls: urlDatabase, shortURL: short };
-    }else{
-      templateVars = { username: '', urls: urlDatabase, shortURL: short };
-    }
-    res.render("urls_show", templateVars);
-   // console.log(urlDatabase);
+    // if (users[req.cookies["user_id"]]){
+    //   templateVars = { username: users[req.cookies["user_id"]]['email'], urls: urlDatabase, shortURL: short };
+    // }else{
+    //   templateVars = { username: '', urls: urlDatabase, shortURL: short };
+    // }
+    console.log(urlDatabase);
+    res.redirect("/");
   });
 
 
   app.post("/urls/:id/delete", (req, res) =>{     //deletes the selected entry from the list
-    delete urlDatabase[req.params.id];
+    delete urlDatabase[req.cookies.user_id][req.params.id];
     res.redirect('/urls');
 
   });
 
   app.post("/urls/:id/update", (req, res) =>{     //updates the long of the select entry
-    urlDatabase[req.params.id] = req.body['longURL'];
+    urlDatabase[req.cookies.user_id][req.params.id] = req.body['longURL'];
     res.redirect('/urls');
   });
 
@@ -106,6 +113,7 @@ module.exports = (app) =>{
       password: req.body.password
     };
     res.cookie('user_id', randomId);
+    urlDatabase[randomId] = {};
     res.redirect('/');
   });
 
