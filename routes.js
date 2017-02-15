@@ -80,12 +80,23 @@ module.exports = (app) =>{
   });
 
   app.post("/register", (req, res) =>{
+    if(req.body.email === '' || req.body.password === ''){
+      res.status(400).send('Sorry, email or password missing!<br><a href="/register">Go Back</a>').end();
+        return;
+    }
+    for(const user in users){
+      if(users[user]['email'] === req.body.email){
+        res.status(400).send('Sorry, the email is already registered!<br><a href="/register">Go Back</a>').end();
+        return;
+      }
+    }
     let randomId = generateRandomString();
     users[randomId] = {
       id: randomId,
       email: req.body.email,
       password: req.body.password
     };
+    res.cookie('user_id', randomId);
     res.redirect('/');
   });
 
