@@ -23,8 +23,13 @@ module.exports = (app) =>{
   // });
 
   app.get("/urls", (req, res) => {                        //index page: list of urls
-   // let templateVars = { username: req.cookies["username"], urls: urlDatabase };
-    let templateVars = { username: req.cookies["username"], urls: urlDatabase };
+    // let templateVars = { username: req.cookies["username"], urls: urlDatabase };
+    let templateVars = {};
+    if (users[req.cookies["user_id"]]){
+      templateVars = { username: users[req.cookies["user_id"]]['email'], urls: urlDatabase };
+    }else{
+      templateVars = { username: '', urls: urlDatabase };
+    }
     res.render("urls_index", templateVars);
 
   });
@@ -32,7 +37,12 @@ module.exports = (app) =>{
 
 
   app.get("/urls/:id", (req, res) => {                   //request for detail and editing page
-    let templateVars = { shortURL: req.params.id, urls: urlDatabase, username: req.cookies["username"] };
+    let templateVars = {};
+    if (users[req.cookies["user_id"]]){
+      templateVars = { username: users[req.cookies["user_id"]]['email'], urls: urlDatabase, shortURL: req.params.id };
+    }else{
+      templateVars = { username: '', urls: urlDatabase, shortURL: req.params.id };
+    }
     res.render("urls_show", templateVars);
   });
 
@@ -41,7 +51,12 @@ module.exports = (app) =>{
   app.post("/urls", (req, res) => {              //creates a new short url for a given url and stores it in the list
     let short = generateRandomString();
     urlDatabase[short] = req.body['longURL'];
-    let templateVars = { shortURL: short, urls: urlDatabase, username: req.cookies["username"]};
+    let templateVars = {};
+    if (users[req.cookies["user_id"]]){
+      templateVars = { username: users[req.cookies["user_id"]]['email'], urls: urlDatabase, shortURL: short };
+    }else{
+      templateVars = { username: '', urls: urlDatabase, shortURL: short };
+    }
     res.render("urls_show", templateVars);
    // console.log(urlDatabase);
   });
@@ -71,7 +86,7 @@ module.exports = (app) =>{
   });
 
   app.post("/logout", (req, res) => {
-    res.clearCookie('username')
+    res.clearCookie('user_id')
     res.redirect('/')
   });
 
@@ -99,6 +114,10 @@ module.exports = (app) =>{
     res.cookie('user_id', randomId);
     res.redirect('/');
   });
+
+  app.get("/login", (req, res) =>{
+    res.render('login');
+  })
 
   function generateRandomString() {
   var text = "";
