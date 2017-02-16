@@ -64,7 +64,7 @@ module.exports = (app) =>{
     // }else{
     //   templateVars = { username: '', urls: urlDatabase, shortURL: short };
     // }
-    console.log(urlDatabase);
+    //console.log(urlDatabase);
     res.redirect("/");
   });
 
@@ -81,9 +81,17 @@ module.exports = (app) =>{
   });
 
   app.get("/u/:shortURL", (req, res) => {         //redirects the user to the respective long url, given a short url
-    let longURL = urlDatabase[req.params.shortURL];
-    console.log(longURL);
-    res.redirect(longURL);
+    for(let user in urlDatabase){
+      for(let url in urlDatabase[user]){
+        if(url === req.params.shortURL){
+          res.redirect(urlDatabase[user][url]);
+          return;
+        }
+      }
+    }
+    // let longURL = urlDatabase[req.params.shortURL];
+    // console.log(longURL);
+    // res.redirect(longURL);
   });
 
   app.post("/logout", (req, res) => {
