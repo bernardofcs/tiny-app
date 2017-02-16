@@ -1,7 +1,8 @@
 const router = require('./routes');
 const express = require("express");
 const cookieParser = require('cookie-parser');
-var cookieSession = require('cookie-session')
+var cookieSession = require('cookie-session');
+var methodOverride = require('method-override');
 const app = express();
 const PORT = process.env.PORT || 8080; // default port 8080
 
@@ -15,7 +16,8 @@ app.use(cookieSession({
 
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
+}));
+app.use(methodOverride('_method'))
 app.set("view engine", "ejs");
 
 router(app);

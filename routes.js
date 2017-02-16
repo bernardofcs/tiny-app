@@ -70,13 +70,13 @@ module.exports = (app) =>{
   });
 
 
-  app.post("/urls/:id/delete", (req, res) =>{     //deletes the selected entry from the list
+  app.delete("/urls/:id/delete", (req, res) =>{     //deletes the selected entry from the list
     delete urlDatabase[req.session.user_id][req.params.id];
     res.redirect('/urls');
 
   });
 
-  app.post("/urls/:id/update", (req, res) =>{     //updates the long of the select entry
+  app.put("/urls/:id/update", (req, res) =>{     //updates the long of the select entry
     urlDatabase[req.session.user_id][req.params.id] = req.body['longURL'];
     res.redirect('/urls');
   });
