@@ -1,13 +1,17 @@
 module.exports = (app) =>{
   const bcrypt = require('bcrypt');
-  const users = {};
-  const urlDatabase = {                          //objects that stores urls
+  const users = {/*ABCDEF: {id: 'ABCDEF', email: 'bernardofcs@hotmail.com', password: '$2a$06$qF4eYJKlVO85Z9E73MNX4OfPRMFbYS6ea5g0uKRUTi5DGnJmL37Tq'}*/};
+  const urlDatabase = {                           //objects that stores urls
     // "b2xVn2": "http://www.lighthouselabs.ca",
     // "9sm5xK": "http://www.google.com"
   };
 
   app.get("/", (req, res) => {
-    res.redirect("/urls");
+    if(users[req.session.user_id]){
+      res.redirect("/urls");
+    }else{
+      res.redirect("/login");
+    }
     //res.end("Hullo");
   });
 
@@ -33,12 +37,12 @@ module.exports = (app) =>{
   app.get("/urls", (req, res) => {                        //index page: list of urls
     // let templateVars = { username: req.session["username"], urls: urlDatabase };
     let templateVars = {};
-    if (users[req.session["user_id"]]){
+    if (users[req.session.user_id]){
       templateVars = { username: users[req.session["user_id"]]['email'], urls: urlDatabase[req.session["user_id"]] };
+      res.render("urls_index", templateVars);
     }else{
-      templateVars = { username: '', urls: {} };
-    }
-    res.render("urls_index", templateVars);
+      res.status(401).send('Please login to your account to access the URLs page.<br><a href="/login"><button>Login</button></a>').end();
+    };
 
   });
 
@@ -46,37 +50,95 @@ module.exports = (app) =>{
 
   app.get("/urls/:id", (req, res) => {                   //request for detail and editing page
     let templateVars = {};
-    if (users[req.session["user_id"]]){
-      templateVars = { username: users[req.session["user_id"]]['email'], urls: urlDatabase[req.session["user_id"]], shortURL: req.params.id };
-    }else{
-      templateVars = { username: '', urls: {}, shortURL: req.params.id };
+    let urlExistsGlobal = false;
+    for(let user in urlDatabase){
+      for(let url in urlDatabase[user]){
+        if(url === req.params.id){
+          urlExistsGlobal = true;
+        }
+      }
     }
+    if (!users[req.session.user_id]){
+      res.status(401).send('Please login to your account to access specific URL pages.<br><a href="/login"><button>Login</button></a>').end();
+      return;
+    }
+    if(!urlExistsGlobal){
+      res.status(404).send('URL was not found').end();
+      return;
+    }
+
+    if(!urlDatabase[req.session.user_id][req.params.id]){
+      res.status(403).send('This URL belongs to another user.<br><a href="/urls"><button>Back to URLs page</button></a>').end();
+      return;
+    }
+
+    templateVars = { username: users[req.session["user_id"]]['email'], urls: urlDatabase[req.session["user_id"]], shortURL: req.params.id };
     res.render("urls_show", templateVars);
   });
 
 
 
   app.post("/urls", (req, res) => {              //creates a new short url for a given url and stores it in the list
+    if(!users[req.session.user_id]){
+      res.status(401).send('Please login to your account to create URL pages.<br><a href="/login"><button>Login</button></a>').end();
+      return;
+    }
     let short = generateRandomString();
     urlDatabase[req.session.user_id][short] = req.body['longURL'];
     let templateVars = {};
-    // if (users[req.session["user_id"]]){
-    //   templateVars = { username: users[req.session["user_id"]]['email'], urls: urlDatabase, shortURL: short };
-    // }else{
-    //   templateVars = { username: '', urls: urlDatabase, shortURL: short };
-    // }
-    //console.log(urlDatabase);
-    res.redirect("/");
+    res.redirect(`/urls/${short}`);
   });
 
 
   app.delete("/urls/:id/delete", (req, res) =>{     //deletes the selected entry from the list
+    let urlExistsGlobal = false;
+    for(let user in urlDatabase){
+      for(let url in urlDatabase[user]){
+        if(url === req.params.id){
+          urlExistsGlobal = true;
+        }
+      }
+    }
+    if (!users[req.session.user_id]){
+      res.status(401).send('Please login to your account to delete URL pages.<br><a href="/login"><button>Login</button></a>').end();
+      return;
+    }
+    if(!urlExistsGlobal){
+      res.status(404).send('URL was not found').end();
+      return;
+    }
+
+    if(!urlDatabase[req.session.user_id][req.params.id]){
+      res.status(403).send('This URL belongs to another user.<br><a href="/urls"><button>Back to URLs page</button></a>').end();
+      return;
+    }
     delete urlDatabase[req.session.user_id][req.params.id];
     res.redirect('/urls');
 
   });
 
   app.put("/urls/:id/update", (req, res) =>{     //updates the long of the select entry
+    let urlExistsGlobal = false;
+    for(let user in urlDatabase){
+      for(let url in urlDatabase[user]){
+        if(url === req.params.id){
+          urlExistsGlobal = true;
+        }
+      }
+    }
+    if (!users[req.session.user_id]){
+      res.status(401).send('Please login to your account to update URL pages.<br><a href="/login"><button>Login</button></a>').end();
+      return;
+    }
+    if(!urlExistsGlobal){
+      res.status(404).send('URL was not found').end();
+      return;
+    }
+
+    if(!urlDatabase[req.session.user_id][req.params.id]){
+      res.status(403).send('This URL belongs to another user.<br><a href="/urls"><button>Back to URLs page</button></a>').end();
+      return;
+    }
     urlDatabase[req.session.user_id][req.params.id] = req.body['longURL'];
     res.redirect('/urls');
   });
@@ -90,9 +152,7 @@ module.exports = (app) =>{
         }
       }
     }
-    // let longURL = urlDatabase[req.params.shortURL];
-    // console.log(longURL);
-    // res.redirect(longURL);
+    res.status(404).send('URL was not found').end();
   });
 
   app.post("/logout", (req, res) => {
@@ -101,6 +161,10 @@ module.exports = (app) =>{
   });
 
   app.get("/register", (req, res) =>{
+    if(users[req.session.user_id]){
+      res.redirect('/');
+      return;
+    }
     res.render('register');
   });
 
@@ -129,6 +193,10 @@ module.exports = (app) =>{
   });
 
   app.get("/login", (req, res) =>{
+    if(users[req.session.user_id]){
+      res.redirect('/');
+      return;
+    }
     res.render('login');
   })
 
@@ -140,7 +208,7 @@ module.exports = (app) =>{
           res.redirect('/');
           return;
         }else{
-          res.status(400).send('Sorry, this is the wrong password for this email!<br><a href="/login">Go Back</a>').end();
+          res.status(401).send('Sorry, this is the wrong password for this email!<br><a href="/login">Go Back</a>').end();
           return;
         }
       }
