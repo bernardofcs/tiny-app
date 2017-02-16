@@ -1,4 +1,5 @@
 module.exports = (app) =>{
+  const bcrypt = require('bcrypt');
   const users = {};
   const urlDatabase = {                          //objects that stores urls
     // "b2xVn2": "http://www.lighthouselabs.ca",
@@ -115,10 +116,12 @@ module.exports = (app) =>{
       }
     }
     let randomId = generateRandomString();
+    const password = req.body.password;
+    const hashed_password = bcrypt.hashSync(password, 10);
     users[randomId] = {
       id: randomId,
       email: req.body.email,
-      password: req.body.password
+      password: hashed_password
     };
     res.cookie('user_id', randomId);
     urlDatabase[randomId] = {};
@@ -132,7 +135,7 @@ module.exports = (app) =>{
   app.post("/login", (req, res) => {
     for(const user in users){
       if(users[user]['email'] === req.body.email){
-        if(users[user]['password'] === req.body.password){
+        if(bcrypt.compareSync(req.body.password, users[user]['password'])){
           res.cookie('user_id', users[user]['id']);
           res.redirect('/');
           return;
