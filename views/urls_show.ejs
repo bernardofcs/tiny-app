@@ -5,13 +5,19 @@
 </head>
 <body>
   <% include partials/_header %><br>
-  Short URL - <%= shortURL %><br>
-  <form method="POST" action="/urls/<%= shortURL %>/update?_method=UPDATE">
+  Short URL - <a href="http://localhost:8080/u/<%= shortURL %>">http://localhost:8080/u/<%= shortURL %></a><br>
+  <form method="POST" action="/urls/<%= shortURL %>/update?_method=PUT">
     <input id="longURL" type="text" name="longURL" value="<%= urls[shortURL]['longUrl'] %>" style="width: 300px">
-    <input type="submit" value="Update"><br><br>
+    <input type="submit" value="Update"></form><br><br>
     Date Created: <%= urls[shortURL]['date'] %> - <%= urls[shortURL]['totalVisits'] %> Total Visit(s) - <%= urls[shortURL]['uniqueVisits'] %> Unique Visit(s)
-  </form>
 
+  <br>
+  <h3>Visits Details</h3>
+  <% for(let visit in urls[shortURL]['totalVisitsDetail']){ %>
+      <li>
+        User ID: <%= urls[shortURL]['totalVisitsDetail'][visit]['user'] %>  - Time: <%= urls[shortURL]['totalVisitsDetail'][visit]['timestamp'] %>
+      </li>
+  <% } %>
   <br>
 </body>
 </html>
