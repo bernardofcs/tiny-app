@@ -15,7 +15,7 @@
   <h3>Visits Details</h3>
   <% for(let visit in urls[shortURL]['totalVisitsDetail']){ %>
       <li>
-        User ID: <%= urls[shortURL]['totalVisitsDetail'][visit]['user'] %>  - Time: <%= urls[shortURL]['totalVisitsDetail'][visit]['timestamp'] %>
+        <% if(!urls[shortURL]['totalVisitsDetail'][visit]['user']){ %> Guest Access <% }else{ %> User ID: <%= urls[shortURL]['totalVisitsDetail'][visit]['user'] %><% } %>  - Time: <%= urls[shortURL]['totalVisitsDetail'][visit]['timestamp'] %>
       </li>
   <% } %>
   <br>

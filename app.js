@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
-  keys: ['user_id'],
+  keys: ['user_id', 'visitor_id'],
 
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours

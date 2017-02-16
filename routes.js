@@ -76,7 +76,6 @@ module.exports = (app) =>{
     const nowDate = new Date();
     const date = nowDate.getFullYear()+'/'+(nowDate.getMonth()+1)+'/'+nowDate.getDate();
     urlDatabase[req.session.user_id][short] = {longUrl: req.body['longURL'], totalVisits: 0, uniqueVisits: 0, date: date, totalVisitsDetail: [], uniqueVisitsDetail: {}};
-    console.log(urlDatabase);
     res.redirect(`/urls/${short}`);
   });
 
@@ -109,7 +108,6 @@ module.exports = (app) =>{
   });
 
   app.put("/urls/:id/update", (req, res) =>{     //updates the long of the select entry
-    console.log('lel');
     let urlExistsGlobal = false;
     for(let user in urlDatabase){
       for(let url in urlDatabase[user]){
@@ -142,7 +140,6 @@ module.exports = (app) =>{
           let alreadyVisited = false;
           for(let visit in urlDatabase[user][url]['uniqueVisitsDetail']){
             if(urlDatabase[user][url]['uniqueVisitsDetail'][visit]['user'] === req.session.user_id){
-              console.log('already visited');
               alreadyVisited = true;
             }
           }
@@ -153,7 +150,6 @@ module.exports = (app) =>{
           }
           urlDatabase[user][url]['totalVisitsDetail'].push({user: req.session.user_id, timestamp: nowDate});
           urlDatabase[user][url]['totalVisits'] += 1;
-          console.log(urlDatabase[user][url]);
           res.redirect(urlDatabase[user][url]['longUrl']);
           return;
         }
