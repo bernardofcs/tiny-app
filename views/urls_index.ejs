@@ -8,8 +8,8 @@
     <p>URLs</p>
     <% Object.keys(urls).forEach(function(url) { %>
       <form method="POST" action="/urls/<%= url %>/delete?_method=DELETE">
-      <li id="<%= url %>"><%= url%> - <a href ="<%= urls[url] %>"><%= urls[url] %></a>  -  <a href="/urls/<%= url %>"><button>Edit</button></a>
-      <input type="submit" value="Delete"></li>
+      <li id="<%= url %>"><%= url%> - <%= urls[url]['longUrl'] %>  -  <a href="/urls/<%= url %>"><button type="button">Edit</button></a>
+      <input type="submit" value="Delete">   Date Created: <%= urls[url]['date'] %> - <%= urls[url]['totalVisits'] %> Total Visit(s) - <%= urls[url]['uniqueVisits'] %> Unique Visit(s) <br> </li>
       </form>
     <% }); %>
     <br>

@@ -1,10 +1,8 @@
 module.exports = (app) =>{
   const bcrypt = require('bcrypt');
-  const users = {/*ABCDEF: {id: 'ABCDEF', email: 'bernardofcs@hotmail.com', password: '$2a$06$qF4eYJKlVO85Z9E73MNX4OfPRMFbYS6ea5g0uKRUTi5DGnJmL37Tq'}*/};
-  const urlDatabase = {                           //objects that stores urls
-    // "b2xVn2": "http://www.lighthouselabs.ca",
-    // "9sm5xK": "http://www.google.com"
-  };
+  const users = {};                             //object that stores user info
+  const urlDatabase = {};                       //objects that stores urls, grouped by user
+
 
   app.get("/", (req, res) => {
     if(users[req.session.user_id]){
@@ -12,13 +10,12 @@ module.exports = (app) =>{
     }else{
       res.redirect("/login");
     }
-    //res.end("Hullo");
   });
 
   app.get("/urls/new", (req, res) => {          //request for the url creation page
     let templateVars = {};
     if (users[req.session["user_id"]]){
-      templateVars = { username: users[req.session["user_id"]]['email'] };
+      templateVars = { username: users[req.session["user_id"]]['email']};
       res.render("urls_new", templateVars);
       return;
     }
@@ -26,16 +23,8 @@ module.exports = (app) =>{
 
   });
 
-  // app.get("/urls.json", (req, res) => {
-  //   res.json(urlDatabase);
-  // });
 
-  // app.get("/hello", (req, res) => {
-  //   res.end("<html><body>Hello <b>World</b></body></html>\n");
-  // });
-
-  app.get("/urls", (req, res) => {                        //index page: list of urls
-    // let templateVars = { username: req.session["username"], urls: urlDatabase };
+  app.get("/urls", (req, res) => {                        //list of urls created by the authenticated user
     let templateVars = {};
     if (users[req.session.user_id]){
       templateVars = { username: users[req.session["user_id"]]['email'], urls: urlDatabase[req.session["user_id"]] };
@@ -84,8 +73,10 @@ module.exports = (app) =>{
       return;
     }
     let short = generateRandomString();
-    urlDatabase[req.session.user_id][short] = req.body['longURL'];
-    let templateVars = {};
+    const nowDate = new Date();
+    const date = nowDate.getFullYear()+'/'+(nowDate.getMonth()+1)+'/'+nowDate.getDate();
+    urlDatabase[req.session.user_id][short] = {longUrl: req.body['longURL'], totalVisits: 0, uniqueVisits: 0, date: date, visits: {timestamp: nowDate, user:req.session.user_id}};
+    console.log(urlDatabase);
     res.redirect(`/urls/${short}`);
   });
 
@@ -139,7 +130,7 @@ module.exports = (app) =>{
       res.status(403).send('This URL belongs to another user.<br><a href="/urls"><button>Back to URLs page</button></a>').end();
       return;
     }
-    urlDatabase[req.session.user_id][req.params.id] = req.body['longURL'];
+    urlDatabase[req.session.user_id][req.params.id]['longUrl'] = req.body['longURL'];
     res.redirect('/urls');
   });
 
@@ -147,7 +138,8 @@ module.exports = (app) =>{
     for(let user in urlDatabase){
       for(let url in urlDatabase[user]){
         if(url === req.params.shortURL){
-          res.redirect(urlDatabase[user][url]);
+          urlDatabase[user][url]['totalVisits'] += 1;
+          res.redirect(urlDatabase[user][url]['longUrl']);
           return;
         }
       }
@@ -155,12 +147,12 @@ module.exports = (app) =>{
     res.status(404).send('URL was not found').end();
   });
 
-  app.post("/logout", (req, res) => {
+  app.post("/logout", (req, res) => {                      //user logs out
     req.session.user_id = null;
     res.redirect('/')
   });
 
-  app.get("/register", (req, res) =>{
+  app.get("/register", (req, res) =>{                       //request for registration page
     if(users[req.session.user_id]){
       res.redirect('/');
       return;
@@ -168,7 +160,7 @@ module.exports = (app) =>{
     res.render('register');
   });
 
-  app.post("/register", (req, res) =>{
+  app.post("/register", (req, res) =>{                        //registers a new user
     if(req.body.email === '' || req.body.password === ''){
       res.status(400).send('Sorry, email or password missing!<br><a href="/register">Go Back</a>').end();
         return;
@@ -192,7 +184,7 @@ module.exports = (app) =>{
     res.redirect('/');
   });
 
-  app.get("/login", (req, res) =>{
+  app.get("/login", (req, res) =>{                     //request for login page
     if(users[req.session.user_id]){
       res.redirect('/');
       return;
@@ -200,7 +192,7 @@ module.exports = (app) =>{
     res.render('login');
   })
 
-  app.post("/login", (req, res) => {
+  app.post("/login", (req, res) => {                   //user authentication
     for(const user in users){
       if(users[user]['email'] === req.body.email){
         if(bcrypt.compareSync(req.body.password, users[user]['password'])){
@@ -216,11 +208,11 @@ module.exports = (app) =>{
     res.status(400).send('Sorry, the email is not registered!<br><a href="/login">Go Back</a>').end();
   });
 
-  function generateRandomString() {
-  var text = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  function generateRandomString() {             //generates a random 6 digit string
+  let text = "";
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-  for( var i=0; i < 6; i++){
+  for(let i=0; i < 6; i++){
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
   return text;

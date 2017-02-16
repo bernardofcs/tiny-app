@@ -7,8 +7,9 @@
   <% include partials/_header %><br>
   Short URL - <%= shortURL %><br>
   <form method="POST" action="/urls/<%= shortURL %>/update?_method=UPDATE">
-    <input id="longURL" type="text" name="longURL" value="<%= urls[shortURL] %>" style="width: 300px">
-    <input type="submit" value="Update">
+    <input id="longURL" type="text" name="longURL" value="<%= urls[shortURL]['longUrl'] %>" style="width: 300px">
+    <input type="submit" value="Update"><br><br>
+    Date Created: <%= urls[shortURL]['date'] %> - <%= urls[shortURL]['totalVisits'] %> Total Visit(s) - <%= urls[shortURL]['uniqueVisits'] %> Unique Visit(s)
   </form>
 
   <br>
