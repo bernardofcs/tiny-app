@@ -13,8 +13,8 @@ module.exports = (app) =>{
 
   app.get("/urls/new", (req, res) => {          //request for the url creation page
     let templateVars = {};
-    if (users[req.cookies["user_id"]]){
-      templateVars = { username: users[req.cookies["user_id"]]['email'] };
+    if (users[req.session["user_id"]]){
+      templateVars = { username: users[req.session["user_id"]]['email'] };
       res.render("urls_new", templateVars);
       return;
     }
@@ -31,10 +31,10 @@ module.exports = (app) =>{
   // });
 
   app.get("/urls", (req, res) => {                        //index page: list of urls
-    // let templateVars = { username: req.cookies["username"], urls: urlDatabase };
+    // let templateVars = { username: req.session["username"], urls: urlDatabase };
     let templateVars = {};
-    if (users[req.cookies["user_id"]]){
-      templateVars = { username: users[req.cookies["user_id"]]['email'], urls: urlDatabase[req.cookies["user_id"]] };
+    if (users[req.session["user_id"]]){
+      templateVars = { username: users[req.session["user_id"]]['email'], urls: urlDatabase[req.session["user_id"]] };
     }else{
       templateVars = { username: '', urls: {} };
     }
@@ -46,8 +46,8 @@ module.exports = (app) =>{
 
   app.get("/urls/:id", (req, res) => {                   //request for detail and editing page
     let templateVars = {};
-    if (users[req.cookies["user_id"]]){
-      templateVars = { username: users[req.cookies["user_id"]]['email'], urls: urlDatabase[req.cookies["user_id"]], shortURL: req.params.id };
+    if (users[req.session["user_id"]]){
+      templateVars = { username: users[req.session["user_id"]]['email'], urls: urlDatabase[req.session["user_id"]], shortURL: req.params.id };
     }else{
       templateVars = { username: '', urls: {}, shortURL: req.params.id };
     }
@@ -58,10 +58,10 @@ module.exports = (app) =>{
 
   app.post("/urls", (req, res) => {              //creates a new short url for a given url and stores it in the list
     let short = generateRandomString();
-    urlDatabase[req.cookies.user_id][short] = req.body['longURL'];
+    urlDatabase[req.session.user_id][short] = req.body['longURL'];
     let templateVars = {};
-    // if (users[req.cookies["user_id"]]){
-    //   templateVars = { username: users[req.cookies["user_id"]]['email'], urls: urlDatabase, shortURL: short };
+    // if (users[req.session["user_id"]]){
+    //   templateVars = { username: users[req.session["user_id"]]['email'], urls: urlDatabase, shortURL: short };
     // }else{
     //   templateVars = { username: '', urls: urlDatabase, shortURL: short };
     // }
@@ -71,13 +71,13 @@ module.exports = (app) =>{
 
 
   app.post("/urls/:id/delete", (req, res) =>{     //deletes the selected entry from the list
-    delete urlDatabase[req.cookies.user_id][req.params.id];
+    delete urlDatabase[req.session.user_id][req.params.id];
     res.redirect('/urls');
 
   });
 
   app.post("/urls/:id/update", (req, res) =>{     //updates the long of the select entry
-    urlDatabase[req.cookies.user_id][req.params.id] = req.body['longURL'];
+    urlDatabase[req.session.user_id][req.params.id] = req.body['longURL'];
     res.redirect('/urls');
   });
 
@@ -96,7 +96,7 @@ module.exports = (app) =>{
   });
 
   app.post("/logout", (req, res) => {
-    res.clearCookie('user_id')
+    req.session.user_id = null;
     res.redirect('/')
   });
 
@@ -123,7 +123,7 @@ module.exports = (app) =>{
       email: req.body.email,
       password: hashed_password
     };
-    res.cookie('user_id', randomId);
+    req.session.user_id = randomId;
     urlDatabase[randomId] = {};
     res.redirect('/');
   });
@@ -136,7 +136,7 @@ module.exports = (app) =>{
     for(const user in users){
       if(users[user]['email'] === req.body.email){
         if(bcrypt.compareSync(req.body.password, users[user]['password'])){
-          res.cookie('user_id', users[user]['id']);
+          req.session.user_id = users[user]['id'];
           res.redirect('/');
           return;
         }else{

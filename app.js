@@ -1,6 +1,7 @@
 const router = require('./routes');
 const express = require("express");
 const cookieParser = require('cookie-parser');
+var cookieSession = require('cookie-session')
 const app = express();
 const PORT = process.env.PORT || 8080; // default port 8080
 
@@ -8,6 +9,13 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['user_id'],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
 app.set("view engine", "ejs");
 
 router(app);
